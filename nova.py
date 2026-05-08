@@ -97,7 +97,6 @@ Line breaks:
   /j          - one newline
   /j*N        - N newlines  (e.g. /j*3)
   /t          - tab
-  *use inverted slash!
 """,
 
     "feed": """
