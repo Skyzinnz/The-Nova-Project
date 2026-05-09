@@ -16,7 +16,7 @@ import urllib.error
 from pathlib import Path
 from typing import Any, Optional
 
-VERSION = "0.2.1"
+VERSION = "0.2.2"
 
 # ─────────────────────────────────────────────
 #  HELP PAGES
@@ -1437,7 +1437,19 @@ class Parser:
         self.expect(TT_KEYWORD, "import")
         alias = self.expect(TT_IDENT).value
         self.expect(TT_KEYWORD, "from")
-        fp = self.advance().value
+        # filepath can be a quoted string OR bare tokens like libmath.nv
+        if self.match(TT_STRING):
+            fp = self.advance().value
+        else:
+            # collect tokens until newline/EOF as raw filepath
+            parts = []
+            while not self.match(TT_NEWLINE) and not self.match(TT_EOF):
+                t = self.advance()
+                if t.type == TT_DOT:
+                    parts.append(".")
+                else:
+                    parts.append(str(t.value))
+            fp = "".join(parts)
         return ImportNode(alias, fp)
 
     # ── call args (inline or multiline) ──────
@@ -2072,7 +2084,11 @@ class Interpreter:
         if isinstance(node, AttrNode):
             obj = self.eval_expr(node.obj, scope)
             if isinstance(obj, dict): return obj.get(node.attr)
-            if isinstance(obj, NovaModule): return obj.scope.get(node.attr)
+            if isinstance(obj, NovaModule):
+                try:
+                    return obj.scope.get(node.attr)
+                except NameError:
+                    raise RuntimeError_(f"Module has no export '{node.attr}'")
             if obj == "__http__": return f"__builtin__http.{node.attr}"
             if isinstance(obj, str) and obj.startswith("__builtin__"):
                 # chained attr like serial.open
@@ -2088,6 +2104,9 @@ class Interpreter:
                 return self._call_builtin(f"http.{method}", args, scope)
             if isinstance(obj, str) and obj.startswith("__builtin__"):
                 return self._call_builtin(f"{obj[len('__builtin__'):]}.{method}", args, scope)
+            if isinstance(obj, NovaModule):
+                fn = obj.scope.get(method)
+                return self._call_value(fn, args, scope)
             if isinstance(obj, str):    return self._string_method(obj, method, args)
             if isinstance(obj, list):   return self._list_method(obj, method, args)
             if isinstance(obj, dict):   return self._dict_method(obj, method, args)
