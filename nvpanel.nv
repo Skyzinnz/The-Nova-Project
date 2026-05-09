@@ -1,0 +1,94 @@
+## This is an example code, you can use this as base for your file ##
+
+clear
+
+group banner(
+	clear
+	say("Nova panel concept — .nv")
+	say("—————————————————————————")
+	say("   Administration	  /j*2")
+)
+## Group: stores reusable code lines, exec <group> to call it ##
+group mainmenu(
+	exec banner
+	say("[ 1 ] exit/j[ 2 ] help")
+	var qs1 = ask(p"Input a option... [1-2]  ")
+## catch(err): returns your written codes if the try returns an error ##
+	try(
+		qs1 = qs1.as_int()
+	) catch(err)(
+		say(f"Error: {err}/jDid you input a string?")
+		wait 2
+		exec banner
+		exec mainmenu
+	)
+## Conditions: use it for comparison, >=, <=, ==, etc. ##
+	if qs1 >= 1 and qs1 <= 2(
+		say("Valid response, hold on tight...")
+		wait 0.3
+	) else(
+		say("Must be between 1 and 2!")
+		wait 2
+		exec mainmenu
+	)
+
+	if qs1 == 1(
+		exit
+	)
+
+	if qs1 == 2(
+		clear
+		exec helptab
+	)
+	
+)
+
+group helptab(
+	exec banner
+	say("[ 1 ] back/j")
+	say(
+		"Welcome to Nova, a project that aims mainly on being a/j",
+		"universal programming language, with that i mean:/j*2",
+		"- Full compatibility with games;/j- Arduino programming;/j",
+		"- General physical hardware automation;/j",
+		"- Mobile and PC program making;/jAnd much more!/j*2"
+	)
+	## The say code doesn't require a specific order, as you see ##
+	say(
+		"You can type 'help' on the terminal for support, this/j",
+		"language has multiple resources from Python and/j",
+		"several other languages, which could possibly give/j",
+		"a bit of experience already if you come from another/j",
+		"programming language. But don't worry! It's still/j",
+		"easy enough for beginners, if you plan to learn the/j",
+		"area of this code you will use./j*2"
+	)
+	say(
+		"The official page from the creator:/j",
+		"https://github.com/Skyzinnz/The-Nova-Project"
+	)
+
+	var qs2 = ask(p">>> ")
+
+	try(
+		qs2 = qs2.as_int()
+	) catch(err)(
+		say(f"Error: {err}/jDid you input a string?")
+		wait 2
+		clear
+		exec helptab
+	)
+
+	if qs2 == 1(
+		clear
+		exec mainmenu
+	) else(
+		say("Must be 1!")
+		wait 2
+		clear
+		exec helptab
+	)
+	
+)
+## Executes the initial menu that also calls banner ##
+exec mainmenu
